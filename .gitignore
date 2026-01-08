@@ -59,4 +59,4 @@ Thumbs.db
 *.code-workspace
 
 # Examples and test files
-Examples/*
+private_examples/*
