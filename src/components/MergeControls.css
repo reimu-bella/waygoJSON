@@ -1,0 +1,170 @@
+.merge-controls {
+  background: #f8f9fa;
+  border-left: 1px solid #dee2e6;
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.merge-controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.merge-controls-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.merge-stats {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.merge-stats span {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.stat-added {
+  background: #d4edda;
+  color: #155724;
+}
+
+.stat-removed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.stat-modified {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.merge-controls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.merge-control-item {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.75rem;
+  transition: box-shadow 0.2s;
+}
+
+.merge-control-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.merge-control-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.line-number {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.diff-type {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.diff-type-added {
+  background: #d4edda;
+  color: #155724;
+}
+
+.diff-type-removed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.diff-type-modified {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.merge-control-content {
+  margin-bottom: 0.75rem;
+}
+
+.content-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.content-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.content-preview code {
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #333;
+  font-family: 'Monaco', 'Courier New', monospace;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-control-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.merge-control-actions button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.merge-control-actions button:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.btn-accept.active {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.btn-reject.active {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
