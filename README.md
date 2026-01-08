@@ -146,7 +146,6 @@ waygoJSON/
 │   │   └── merge.ts            # Merge logic
 │   ├── types/           # TypeScript type definitions
 │   └── styles/          # CSS styles
-├── Examples/            # Example lorebook files
 ├── .env.example         # Environment variable template
 ├── .env.local           # Local environment variables (gitignored)
 ├── package.json
