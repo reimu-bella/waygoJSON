@@ -18,14 +18,87 @@ interface AIEditResponse {
 // Fallback to empty string if not set (will require explicit apiKey parameter)
 const DEFAULT_API_KEY = import.meta.env.VITE_POLLINATIONS_API_KEY || '';
 
+// Prompt template - can be edited in src/prompts/aiEditPrompt.txt
+// For now using inline template; can be loaded from file if needed
+function getPromptTemplate(): string {
+  // Try to load from public directory (if file is moved there)
+  // For now, using inline template that matches the file content
+  return `You are editing a lorebook entry in JSON format. The entry is part of a world_info/lorebook system and follows a specific structure.
+
+The entry structure includes:
+- uid: A unique identifier (number) - MUST be preserved exactly as provided
+- key: An array of strings used for matching/triggering this entry
+- keysecondary: An array of secondary keys
+- comment: A short description/name for the entry
+- content: The main text content of the entry
+- Various boolean and numeric fields for configuration (constant, vectorized, selective, probability, depth, etc.)
+- characterFilter: An object with isExclude, names, and tags arrays
+
+Original entry JSON:
+{ENTRY_JSON}
+
+User instruction: {USER_INSTRUCTION}
+
+IMPORTANT: 
+- Respond with ONLY the edited entry JSON object
+- Do NOT include any commentary, explanation, or markdown formatting
+- Do NOT wrap the JSON in code blocks or quotes
+- The response must be valid JSON that can be parsed directly
+- Preserve the uid field exactly as it appears in the original entry
+- Maintain all required fields from the original entry structure
+- Only modify fields as instructed by the user`;
+}
+
 /**
- * Edits lorebook entry content using Pollinations AI Text API
+ * Parses AI response to extract JSON, handling markdown code blocks and other formatting
+ */
+function extractJSONFromResponse(response: string): string {
+  // Remove markdown code blocks if present
+  let cleaned = response.trim();
+  
+  // Remove ```json or ``` markers
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, '');
+  cleaned = cleaned.replace(/\s*```$/i, '');
+  
+  // Try to find JSON object boundaries
+  const jsonStart = cleaned.indexOf('{');
+  const jsonEnd = cleaned.lastIndexOf('}');
+  
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+  }
+  
+  return cleaned.trim();
+}
+
+/**
+ * Validates that the parsed entry has required fields and preserves UID
+ */
+function validateEditedEntry(original: LorebookEntry, edited: any): LorebookEntry {
+  // Ensure UID is preserved
+  if (edited.uid !== original.uid) {
+    edited.uid = original.uid;
+  }
+  
+  // Ensure required fields exist, use original values as fallback
+  const validated: LorebookEntry = {
+    ...original,
+    ...edited,
+    uid: original.uid, // Always preserve original UID
+  };
+  
+  return validated;
+}
+
+/**
+ * Edits a full lorebook entry using Pollinations AI Text API
+ * Returns the complete edited entry object
  */
 export async function editWithAI(
   entry: LorebookEntry,
-  prompt: string,
+  userInstruction: string,
   apiKey?: string
-): Promise<string> {
+): Promise<LorebookEntry> {
   const key = apiKey || DEFAULT_API_KEY;
   
   if (!key) {
@@ -36,8 +109,14 @@ export async function editWithAI(
     );
   }
   
-  // Construct the full prompt with context
-  const fullPrompt = `${prompt}\n\nOriginal text:\n${entry.content}`;
+  // Get prompt template
+  const template = getPromptTemplate();
+  
+  // Replace placeholders in template
+  const entryJSON = JSON.stringify(entry, null, 2);
+  const fullPrompt = template
+    .replace('{ENTRY_JSON}', entryJSON)
+    .replace('{USER_INSTRUCTION}', userInstruction);
   
   // Use the correct endpoint from gen.pollinations.ai (not enter.pollinations.ai)
   // Based on API schema: https://gen.pollinations.ai/v1/chat/completions
@@ -53,7 +132,7 @@ export async function editWithAI(
           content: fullPrompt,
         },
       ],
-      max_tokens: 2000,
+      max_tokens: 4000, // Increased for full JSON responses
     };
 
     const headers: HeadersInit = {
@@ -74,36 +153,37 @@ export async function editWithAI(
 
     const data: AIEditResponse = await response.json();
     
-    // Handle OpenAI-compatible response format
+    // Extract response text
+    let responseText = '';
     if (data.choices && data.choices.length > 0) {
       const choice = data.choices[0];
-      if (choice.message?.content) {
-        return choice.message.content;
-      }
-      if (choice.text) {
-        return choice.text;
-      }
+      responseText = choice.message?.content || choice.text || '';
+    } else if (typeof data === 'string') {
+      responseText = data;
+    } else {
+      responseText = data.text || data.content || data.result || data.generated_text || data.response || '';
     }
     
-    // Handle other possible response formats (fallback)
-    if (typeof data === 'string') {
-      return data;
+    if (!responseText) {
+      throw new Error('API returned empty response');
     }
     
-    // Try different possible response field names
-    const result =
-      data.text ||
-      data.content ||
-      data.result ||
-      data.generated_text ||
-      data.response ||
-      entry.content; // Fallback to original if no valid response
+    // Extract and parse JSON from response
+    const jsonString = extractJSONFromResponse(responseText);
     
-    if (result === entry.content) {
-      throw new Error('API returned no valid response content');
+    let editedEntry: any;
+    try {
+      editedEntry = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', jsonString);
+      throw new Error(
+        'AI returned invalid JSON. The response may have included commentary. ' +
+        'Please try again or adjust your prompt.'
+      );
     }
     
-    return result;
+    // Validate and return edited entry
+    return validateEditedEntry(entry, editedEntry);
   } catch (error) {
     console.error('AI editing error:', error);
     
@@ -120,19 +200,20 @@ export async function editWithAI(
  */
 export async function editMultipleEntriesWithAI(
   entries: LorebookEntry[],
-  prompt: string,
+  userInstruction: string,
   apiKey?: string
-): Promise<Map<string, string>> {
-  const results = new Map<string, string>();
+): Promise<Map<string, LorebookEntry>> {
+  const results = new Map<string, LorebookEntry>();
   
   // Process entries sequentially to avoid rate limiting
   for (const entry of entries) {
     try {
-      const editedContent = await editWithAI(entry, prompt, apiKey);
-      results.set(String(entry.uid), editedContent);
+      const editedEntry = await editWithAI(entry, userInstruction, apiKey);
+      results.set(String(entry.uid), editedEntry);
     } catch (error) {
-      // If one fails, use original content and continue
-      results.set(String(entry.uid), entry.content);
+      // If one fails, use original entry and continue
+      console.error(`Failed to edit entry ${entry.uid}:`, error);
+      results.set(String(entry.uid), entry);
     }
   }
   

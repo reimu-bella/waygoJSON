@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import type { LorebookEntry } from '../types';
 import { editWithAI, editMultipleEntriesWithAI } from '../utils/aiService';
+import { EntryPreview } from './EntryPreview';
 import './AIEditModal.css';
 
 interface AIEditModalProps {
   entries: LorebookEntry[];
   isOpen: boolean;
   onClose: () => void;
-  onApply: (updates: Map<string, string>) => void;
+  onApply: (updates: Map<string, LorebookEntry>) => void;
 }
 
 export const AIEditModal: React.FC<AIEditModalProps> = ({
@@ -19,7 +20,7 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previews, setPreviews] = useState<Map<string, string>>(new Map());
+  const [previews, setPreviews] = useState<Map<string, LorebookEntry>>(new Map());
   const [currentEntryIndex, setCurrentEntryIndex] = useState(0);
 
   useEffect(() => {
@@ -45,9 +46,9 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
     try {
       if (entries.length === 1) {
         // Single entry editing
-        const editedContent = await editWithAI(entries[0], prompt);
-        const newPreviews = new Map<string, string>();
-        newPreviews.set(String(entries[0].uid), editedContent);
+        const editedEntry = await editWithAI(entries[0], prompt);
+        const newPreviews = new Map<string, LorebookEntry>();
+        newPreviews.set(String(entries[0].uid), editedEntry);
         setPreviews(newPreviews);
       } else {
         // Batch editing
@@ -72,7 +73,7 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
   if (!isOpen) return null;
 
   const currentEntry = entries[currentEntryIndex];
-  const previewContent = currentEntry ? previews.get(String(currentEntry.uid)) : null;
+  const previewEntry = currentEntry ? previews.get(String(currentEntry.uid)) : null;
 
   return (
     <div className="ai-edit-modal-overlay" onClick={onClose}>
@@ -107,7 +108,7 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
               id="ai-prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe how you want to edit this entry. For example: 'Make the description more detailed' or 'Add more vivid imagery'"
+              placeholder="Describe how you want to edit this entry. For example: 'Remove all keys except Isabella', 'Make the description more detailed', or 'Update the comment to be more concise'"
               rows={3}
               disabled={isLoading}
             />
@@ -131,15 +132,7 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
               <div className="ai-edit-preview-panel">
                 <h3>Original</h3>
                 <div className="ai-edit-content-display">
-                  <div className="ai-edit-entry-meta">
-                    <strong>Comment:</strong> {currentEntry.comment}
-                  </div>
-                  <div className="ai-edit-entry-meta">
-                    <strong>Keys:</strong> {currentEntry.key.join(', ')}
-                  </div>
-                  <div className="ai-edit-content-text">
-                    {currentEntry.content}
-                  </div>
+                  <EntryPreview entry={currentEntry} />
                 </div>
               </div>
 
@@ -151,19 +144,11 @@ export const AIEditModal: React.FC<AIEditModalProps> = ({
                       <div className="loading-spinner">⟳</div>
                       <p>Generating edit...</p>
                     </div>
-                  ) : previewContent ? (
-                    <>
-                      <div className="ai-edit-entry-meta">
-                        <strong>Comment:</strong> {currentEntry.comment}
-                      </div>
-                      <div className="ai-edit-entry-meta">
-                        <strong>Keys:</strong> {currentEntry.key.join(', ')}
-                      </div>
-                      <div className="ai-edit-content-text">{previewContent}</div>
-                    </>
+                  ) : previewEntry ? (
+                    <EntryPreview entry={previewEntry} />
                   ) : (
                     <div className="ai-edit-placeholder">
-                      Generated content will appear here after clicking "Generate Preview"
+                      Generated entry will appear here after clicking "Generate Preview"
                     </div>
                   )}
                 </div>

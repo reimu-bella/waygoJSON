@@ -249,7 +249,7 @@ function App() {
     }
   };
 
-  const handleAIApply = (updates: Map<string, string>) => {
+  const handleAIApply = (updates: Map<string, LorebookEntry>) => {
     // Initialize base if not set
     if (!originalBaseContent) {
       setOriginalBaseContent(leftContent);
@@ -266,10 +266,11 @@ function App() {
     // Start from rightContent if we have previous edits, otherwise from base
     const sourceContent = hasOutlineEdits ? rightContent : (originalBaseContent || leftContent);
     
-    // Apply all updates
+    // Apply all updates - replace entire entry objects
     let updatedContent = sourceContent;
-    updates.forEach((newContent, uid) => {
-      updatedContent = updateEntry(updatedContent, uid, { content: newContent });
+    updates.forEach((editedEntry, uid) => {
+      // Replace the entire entry with the edited version
+      updatedContent = updateEntry(updatedContent, uid, editedEntry);
     });
     
     // Update right panel with the edited version
