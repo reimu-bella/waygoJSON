@@ -30,16 +30,24 @@ export function buildMergedContent(
       mergedLines.push(lineDiff.leftContent);
     } else if (lineDiff.diffType === 'added') {
       // Line exists only in right
-      if (!decision || (decision.accepted && decision.side === 'right')) {
+      // Accept Right = include the addition, Accept Left = don't include it
+      if (!decision) {
+        // No decision made yet, include by default (accept right)
+        mergedLines.push(lineDiff.rightContent);
+      } else if (decision.accepted && decision.side === 'right') {
         mergedLines.push(lineDiff.rightContent);
       }
-      // If rejected, don't add the line
+      // If Accept Left or rejected, don't add the line
     } else if (lineDiff.diffType === 'removed') {
       // Line exists only in left
-      if (!decision || (decision.accepted && decision.side === 'left')) {
+      // Accept Left = keep the line, Accept Right = remove it
+      if (!decision) {
+        // No decision made yet, keep by default (accept left)
+        mergedLines.push(lineDiff.leftContent);
+      } else if (decision.accepted && decision.side === 'left') {
         mergedLines.push(lineDiff.leftContent);
       }
-      // If rejected, don't add the line
+      // If Accept Right or rejected, don't add the line
     } else if (lineDiff.diffType === 'modified') {
       // Line differs between left and right
       if (!decision) {

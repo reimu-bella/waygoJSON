@@ -5,15 +5,19 @@ import './MergeControls.css';
 interface MergeControlsProps {
   diffResult: DiffResult | null;
   onAccept: (segmentId: string, side: 'left' | 'right') => void;
-  onReject: (segmentId: string) => void;
   getDecision: (segmentId: string) => { side: 'left' | 'right'; accepted: boolean } | undefined;
+  onApplyToLeft?: () => void;
+  onApplyToRight?: () => void;
+  hasMergedContent?: boolean;
 }
 
 export const MergeControls: React.FC<MergeControlsProps> = ({
   diffResult,
   onAccept,
-  onReject,
   getDecision,
+  onApplyToLeft,
+  onApplyToRight,
+  hasMergedContent = false,
 }) => {
   if (!diffResult || diffResult.lines.length === 0) {
     return null;
@@ -35,6 +39,30 @@ export const MergeControls: React.FC<MergeControlsProps> = ({
           )}
         </div>
       </div>
+      {(onApplyToLeft || onApplyToRight) && (
+        <div className="merge-controls-apply-buttons">
+          {onApplyToLeft && (
+            <button
+              className="btn-apply btn-apply-left"
+              onClick={onApplyToLeft}
+              disabled={!hasMergedContent}
+              title="Apply accepted changes to the left document"
+            >
+              Apply to Left
+            </button>
+          )}
+          {onApplyToRight && (
+            <button
+              className="btn-apply btn-apply-right"
+              onClick={onApplyToRight}
+              disabled={!hasMergedContent}
+              title="Apply accepted changes to the right document"
+            >
+              Apply to Right
+            </button>
+          )}
+        </div>
+      )}
       <div className="merge-controls-list">
         {diffResult.lines
           .filter((line) => line.diffType !== 'unchanged')
@@ -77,36 +105,18 @@ export const MergeControls: React.FC<MergeControlsProps> = ({
                   )}
                 </div>
                 <div className="merge-control-actions">
-                  {lineDiff.diffType === 'modified' ? (
-                    <>
-                      <button
-                        className={`btn-accept ${decision?.side === 'left' ? 'active' : ''}`}
-                        onClick={() => onAccept(segmentId, 'left')}
-                      >
-                        Accept Left
-                      </button>
-                      <button
-                        className={`btn-accept ${decision?.side === 'right' ? 'active' : ''}`}
-                        onClick={() => onAccept(segmentId, 'right')}
-                      >
-                        Accept Right
-                      </button>
-                    </>
-                  ) : lineDiff.diffType === 'added' ? (
-                    <button
-                      className={`btn-accept ${decision?.side === 'right' ? 'active' : ''}`}
-                      onClick={() => onAccept(segmentId, 'right')}
-                    >
-                      Accept
-                    </button>
-                  ) : (
-                    <button
-                      className={`btn-reject ${decision?.accepted === false ? 'active' : ''}`}
-                      onClick={() => onReject(segmentId)}
-                    >
-                      Reject
-                    </button>
-                  )}
+                  <button
+                    className={`btn-accept ${decision?.side === 'left' ? 'active' : ''}`}
+                    onClick={() => onAccept(segmentId, 'left')}
+                  >
+                    Accept Left
+                  </button>
+                  <button
+                    className={`btn-accept ${decision?.side === 'right' ? 'active' : ''}`}
+                    onClick={() => onAccept(segmentId, 'right')}
+                  >
+                    Accept Right
+                  </button>
                 </div>
               </div>
             );

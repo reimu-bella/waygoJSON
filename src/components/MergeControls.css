@@ -10,9 +10,60 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #dee2e6;
+}
+
+.merge-controls-apply-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.btn-apply {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-apply:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.btn-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-apply-left {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.btn-apply-left:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+}
+
+.btn-apply-right {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.btn-apply-right:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
 }
 
 .merge-controls-header h3 {

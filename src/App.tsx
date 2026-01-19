@@ -163,8 +163,24 @@ function App() {
     acceptChange(segmentId, side);
   };
 
-  const handleReject = (segmentId: string) => {
-    rejectChange(segmentId);
+  const handleApplyToLeft = () => {
+    if (!mergedContent) return;
+    setLeftContent(mergedContent);
+    if (leftEditorRef.current) {
+      leftEditorRef.current.setValue(mergedContent);
+    }
+    // Clear outline edit tracking when applying to left
+    setHasOutlineEdits(false);
+  };
+
+  const handleApplyToRight = () => {
+    if (!mergedContent) return;
+    setRightContent(mergedContent);
+    if (rightEditorRef.current) {
+      rightEditorRef.current.setValue(mergedContent);
+    }
+    // Clear outline edit tracking when applying to right
+    setHasOutlineEdits(false);
   };
 
   const handleTabChange = (view: ViewMode) => {
@@ -329,8 +345,10 @@ function App() {
             <MergeControls
               diffResult={diffResult}
               onAccept={handleAccept}
-              onReject={handleReject}
               getDecision={getDecision}
+              onApplyToLeft={handleApplyToLeft}
+              onApplyToRight={handleApplyToRight}
+              hasMergedContent={!!mergedContent}
             />
           </>
         ) : (
