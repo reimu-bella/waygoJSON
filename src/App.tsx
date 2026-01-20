@@ -28,6 +28,8 @@ function App() {
   // Track the original base content for diff comparison when editing in outline view
   const [originalBaseContent, setOriginalBaseContent] = useState<string>('');
   const [hasOutlineEdits, setHasOutlineEdits] = useState(false);
+  // Centralized draft document that serves as the source of truth across all tabs
+  const [currentDraft, setCurrentDraft] = useState<string>('');
   const leftEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const rightEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -46,6 +48,8 @@ function App() {
     // When loading a new file, reset outline edit tracking and set original base
     setOriginalBaseContent(file.content);
     setHasOutlineEdits(false);
+    // Initialize the centralized draft with the loaded file content
+    setCurrentDraft(file.content);
     // If right panel is empty or was showing outline edits, reset it to match
     if (!rightContent || hasOutlineEdits) {
       setRightContent(file.content);
@@ -183,6 +187,30 @@ function App() {
     setHasOutlineEdits(false);
   };
 
+  const handleCopyDraftToLeft = () => {
+    if (!currentDraft) return;
+    setLeftContent(currentDraft);
+    if (leftEditorRef.current) {
+      leftEditorRef.current.setValue(currentDraft);
+    }
+  };
+
+  const handleCopyDraftToRight = () => {
+    if (!currentDraft) return;
+    setRightContent(currentDraft);
+    if (rightEditorRef.current) {
+      rightEditorRef.current.setValue(currentDraft);
+    }
+  };
+
+  const handleSaveLeftToDraft = () => {
+    setCurrentDraft(leftContent);
+  };
+
+  const handleSaveRightToDraft = () => {
+    setCurrentDraft(rightContent);
+  };
+
   const handleTabChange = (view: ViewMode) => {
     setViewMode(view);
     // Clear selections when switching views
@@ -291,15 +319,18 @@ function App() {
     
     // Update right panel with the edited version
     setRightContent(updatedContent);
+    // Editor will update via value prop, but ensure it's synced
     if (rightEditorRef.current) {
-      rightEditorRef.current.setValue(updatedContent);
+      const currentValue = rightEditorRef.current.getValue();
+      if (currentValue !== updatedContent) {
+        rightEditorRef.current.setValue(updatedContent);
+      }
     }
     setHasOutlineEdits(true);
     setAiModalOpen(false);
   };
 
-  const primaryContent = leftContent || rightContent;
-  const shouldShowOutline = viewMode === 'outline' && primaryContent;
+  const shouldShowOutline = viewMode === 'outline' && currentDraft;
 
   return (
     <div className="app">
@@ -349,27 +380,24 @@ function App() {
               onApplyToLeft={handleApplyToLeft}
               onApplyToRight={handleApplyToRight}
               hasMergedContent={!!mergedContent}
+              onCopyDraftToLeft={handleCopyDraftToLeft}
+              onCopyDraftToRight={handleCopyDraftToRight}
+              onSaveLeftToDraft={handleSaveLeftToDraft}
+              onSaveRightToDraft={handleSaveRightToDraft}
+              hasDraft={!!currentDraft}
             />
           </>
         ) : (
           <div className="outline-view-container">
             {shouldShowOutline ? (
-              <>
-                {(originalBaseContent || leftContent) ? (
-                  <LorebookOutline
-                    jsonContent={originalBaseContent || leftContent}
-                    selectedEntries={selectedEntries}
-                    onEntrySelect={handleEntrySelect}
-                    onEntryDelete={handleEntryDelete}
-                    onEntryEdit={handleEntryEdit}
-                    onAIEditRequest={handleAIEditRequest}
-                  />
-                ) : (
-                  <div className="outline-view-empty">
-                    <p>Please load a lorebook JSON file to view entries.</p>
-                  </div>
-                )}
-              </>
+              <LorebookOutline
+                jsonContent={currentDraft}
+                selectedEntries={selectedEntries}
+                onEntrySelect={handleEntrySelect}
+                onEntryDelete={handleEntryDelete}
+                onEntryEdit={handleEntryEdit}
+                onAIEditRequest={handleAIEditRequest}
+              />
             ) : (
               <div className="outline-view-empty">
                 <p>Please load a lorebook JSON file to view entries.</p>

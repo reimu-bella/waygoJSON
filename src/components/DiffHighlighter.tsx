@@ -16,6 +16,12 @@ export const DiffHighlighter: React.FC<DiffHighlighterProps> = ({ editor, diffRe
       return;
     }
 
+    // Get the editor model to verify line count and get actual line content
+    const model = editor.getModel();
+    if (!model) {
+      return;
+    }
+
     const decorations: monaco.editor.IModelDeltaDecoration[] = [];
 
     for (const lineDiff of diffResult.lines) {
@@ -24,6 +30,16 @@ export const DiffHighlighter: React.FC<DiffHighlighterProps> = ({ editor, diffRe
 
       if (!content && lineDiff.diffType !== 'removed') continue;
       if (lineDiff.diffType === 'unchanged') continue;
+
+      // Verify the line exists in the editor model
+      const lineCount = model.getLineCount();
+      if (lineNumber < 1 || lineNumber > lineCount) {
+        continue;
+      }
+
+      // Get the actual line content from the editor for accurate range calculation
+      const actualLineContent = model.getLineContent(lineNumber);
+      const lineLength = actualLineContent.length;
 
       let className = '';
       let glyphMarginClassName = '';
@@ -44,8 +60,9 @@ export const DiffHighlighter: React.FC<DiffHighlighterProps> = ({ editor, diffRe
       }
 
       if (className) {
+        // Use the actual line length from the editor model for accurate range
         decorations.push({
-          range: new monaco.Range(lineNumber, 1, lineNumber, content.length + 1),
+          range: new monaco.Range(lineNumber, 1, lineNumber, lineLength + 1),
           options: {
             className,
             glyphMarginClassName,

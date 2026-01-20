@@ -9,6 +9,11 @@ interface MergeControlsProps {
   onApplyToLeft?: () => void;
   onApplyToRight?: () => void;
   hasMergedContent?: boolean;
+  onCopyDraftToLeft?: () => void;
+  onCopyDraftToRight?: () => void;
+  onSaveLeftToDraft?: () => void;
+  onSaveRightToDraft?: () => void;
+  hasDraft?: boolean;
 }
 
 export const MergeControls: React.FC<MergeControlsProps> = ({
@@ -18,6 +23,11 @@ export const MergeControls: React.FC<MergeControlsProps> = ({
   onApplyToLeft,
   onApplyToRight,
   hasMergedContent = false,
+  onCopyDraftToLeft,
+  onCopyDraftToRight,
+  onSaveLeftToDraft,
+  onSaveRightToDraft,
+  hasDraft = false,
 }) => {
   if (!diffResult || diffResult.lines.length === 0) {
     return null;
@@ -61,6 +71,58 @@ export const MergeControls: React.FC<MergeControlsProps> = ({
               Apply to Right
             </button>
           )}
+        </div>
+      )}
+      {(onCopyDraftToLeft || onCopyDraftToRight || onSaveLeftToDraft || onSaveRightToDraft) && (
+        <div className="merge-controls-draft-buttons">
+          <div className="draft-buttons-section">
+            <span className="draft-section-label">Copy Draft To:</span>
+            <div className="draft-buttons-group">
+              {onCopyDraftToLeft && (
+                <button
+                  className="btn-draft btn-draft-copy-left"
+                  onClick={onCopyDraftToLeft}
+                  disabled={!hasDraft}
+                  title="Copy current draft to the left document"
+                >
+                  Copy to Left
+                </button>
+              )}
+              {onCopyDraftToRight && (
+                <button
+                  className="btn-draft btn-draft-copy-right"
+                  onClick={onCopyDraftToRight}
+                  disabled={!hasDraft}
+                  title="Copy current draft to the right document"
+                >
+                  Copy to Right
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="draft-buttons-section">
+            <span className="draft-section-label">Save To Draft:</span>
+            <div className="draft-buttons-group">
+              {onSaveLeftToDraft && (
+                <button
+                  className="btn-draft btn-draft-save-left"
+                  onClick={onSaveLeftToDraft}
+                  title="Save left document to draft"
+                >
+                  Save Left
+                </button>
+              )}
+              {onSaveRightToDraft && (
+                <button
+                  className="btn-draft btn-draft-save-right"
+                  onClick={onSaveRightToDraft}
+                  title="Save right document to draft"
+                >
+                  Save Right
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
       <div className="merge-controls-list">
