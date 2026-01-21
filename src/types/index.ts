@@ -51,7 +51,7 @@ export interface DiffResult {
   modifications: number;
 }
 
-export type ViewMode = 'diff' | 'outline';
+export type ViewMode = 'diff' | 'outline' | 'narrative';
 
 export interface LorebookEntry {
   uid: number;

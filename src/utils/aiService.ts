@@ -219,3 +219,137 @@ export async function editMultipleEntriesWithAI(
   
   return results;
 }
+
+/**
+ * Transforms a narrative document using Pollinations AI
+ * Combines beforePrompt, narrativeJson, and afterPrompt into a single request
+ * Returns the transformed narrative JSON in the same structure
+ */
+export async function transformNarrative(
+  narrativeJson: string,
+  beforePrompt: string,
+  afterPrompt: string,
+  apiKey?: string
+): Promise<string> {
+  const key = apiKey || DEFAULT_API_KEY;
+  
+  if (!key) {
+    throw new Error(
+      'Pollinations AI API key is not configured. ' +
+      'Please set VITE_POLLINATIONS_API_KEY in your .env.local file. ' +
+      'See .env.example for instructions.'
+    );
+  }
+  
+  // Combine prompts: beforePrompt + narrativeJson + afterPrompt
+  const fullPrompt = `${beforePrompt}\n\n${narrativeJson}\n\n${afterPrompt}`;
+  
+  // Use the same endpoint as editWithAI
+  const apiUrl = 'https://gen.pollinations.ai/v1/chat/completions';
+  
+  try {
+    const requestBody = {
+      model: 'claude-fast',
+      messages: [
+        {
+          role: 'user',
+          content: fullPrompt,
+        },
+      ],
+      max_tokens: 8192, // Increased for full JSON responses
+    };
+
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+    };
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const data: AIEditResponse = await response.json();
+    
+    // Extract response text
+    let responseText = '';
+    if (data.choices && data.choices.length > 0) {
+      const choice = data.choices[0];
+      responseText = choice.message?.content || choice.text || '';
+    } else if (typeof data === 'string') {
+      responseText = data;
+    } else {
+      responseText = data.text || data.content || data.result || data.generated_text || data.response || '';
+    }
+    
+    if (!responseText) {
+      throw new Error('API returned empty response');
+    }
+    
+    // Extract and parse JSON from response
+    const jsonString = extractJSONFromResponse(responseText);
+    
+    // Validate it's valid JSON
+    try {
+      const parsed = JSON.parse(jsonString);
+      // Return formatted JSON
+      return JSON.stringify(parsed, null, 2);
+    } catch (parseError) {
+      // Enhanced debug logging
+      console.error('=== AI Response Debug Info ===');
+      console.error('Raw response text:', responseText);
+      console.error('Extracted JSON string:', jsonString);
+      console.error('Parse error:', parseError);
+      console.error('Full API response data:', JSON.stringify(data, null, 2));
+      console.error('================================');
+      
+      // Create and download debug log file
+      const debugLog = {
+        timestamp: new Date().toISOString(),
+        error: 'Failed to parse AI response as JSON',
+        parseError: parseError instanceof Error ? parseError.message : String(parseError),
+        request: {
+          url: apiUrl,
+          model: requestBody.model,
+          max_tokens: requestBody.max_tokens,
+          prompt_preview: fullPrompt.substring(0, 500) + (fullPrompt.length > 500 ? '...' : ''),
+          full_prompt_length: fullPrompt.length,
+        },
+        response: {
+          raw_response_text: responseText,
+          extracted_json_string: jsonString,
+          full_api_response: data,
+        },
+      };
+      
+      const debugBlob = new Blob([JSON.stringify(debugLog, null, 2)], { type: 'application/json' });
+      const debugUrl = URL.createObjectURL(debugBlob);
+      const debugLink = document.createElement('a');
+      debugLink.href = debugUrl;
+      debugLink.download = `ai-response-debug-${Date.now()}.json`;
+      document.body.appendChild(debugLink);
+      debugLink.click();
+      document.body.removeChild(debugLink);
+      URL.revokeObjectURL(debugUrl);
+      
+      throw new Error(
+        'AI returned invalid JSON. A debug log file has been downloaded. ' +
+        'Please check the downloaded file to see the full response. ' +
+        'Also check the browser console for detailed error information.'
+      );
+    }
+  } catch (error) {
+    console.error('AI narrative transformation error:', error);
+    
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to transform narrative. Please check the API endpoint and try again.');
+  }
+}

@@ -7,6 +7,7 @@ import { Toolbar } from './components/Toolbar';
 import { TabNavigation } from './components/TabNavigation';
 import { LorebookOutline } from './components/LorebookOutline';
 import { AIEditModal } from './components/AIEditModal';
+import { NarrativeView } from './components/NarrativeView';
 import { useDiff } from './hooks/useDiff';
 import { useMerge } from './hooks/useMerge';
 import { formatJSON, removeEntry, updateEntry, extractEntries } from './utils/json';
@@ -387,6 +388,8 @@ function App() {
               hasDraft={!!currentDraft}
             />
           </>
+        ) : viewMode === 'narrative' ? (
+          <NarrativeView draftContent={currentDraft} />
         ) : (
           <div className="outline-view-container">
             {shouldShowOutline ? (

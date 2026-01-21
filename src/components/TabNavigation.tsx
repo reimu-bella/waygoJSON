@@ -22,6 +22,12 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentView, onTab
       >
         Outline View
       </button>
+      <button
+        className={`tab-btn ${currentView === 'narrative' ? 'active' : ''}`}
+        onClick={() => onTabChange('narrative')}
+      >
+        Narrative
+      </button>
     </div>
   );
 };
