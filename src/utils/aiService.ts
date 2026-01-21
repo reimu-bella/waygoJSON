@@ -196,24 +196,50 @@ export async function editWithAI(
 }
 
 /**
- * Edits multiple entries with the same prompt
+ * Progress callback type for batch editing
+ */
+export type BatchEditProgressCallback = (
+  currentIndex: number,
+  total: number,
+  entry: LorebookEntry,
+  result: LorebookEntry | null,
+  error?: Error
+) => void;
+
+/**
+ * Edits multiple entries with the same prompt, processing them one-by-one in a queue
+ * Calls the progress callback after each entry is processed
  */
 export async function editMultipleEntriesWithAI(
   entries: LorebookEntry[],
   userInstruction: string,
-  apiKey?: string
+  apiKey?: string,
+  onProgress?: BatchEditProgressCallback
 ): Promise<Map<string, LorebookEntry>> {
   const results = new Map<string, LorebookEntry>();
+  const total = entries.length;
   
   // Process entries sequentially to avoid rate limiting
-  for (const entry of entries) {
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     try {
       const editedEntry = await editWithAI(entry, userInstruction, apiKey);
       results.set(String(entry.uid), editedEntry);
+      
+      // Call progress callback on success
+      if (onProgress) {
+        onProgress(i + 1, total, entry, editedEntry);
+      }
     } catch (error) {
       // If one fails, use original entry and continue
-      console.error(`Failed to edit entry ${entry.uid}:`, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`Failed to edit entry ${entry.uid}:`, err);
       results.set(String(entry.uid), entry);
+      
+      // Call progress callback on error
+      if (onProgress) {
+        onProgress(i + 1, total, entry, null, err);
+      }
     }
   }
   

@@ -238,6 +238,116 @@
   font-size: 0.9rem;
 }
 
+.ai-edit-queue-progress {
+  padding: 0.75rem;
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.ai-edit-progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.ai-edit-progress-bar {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.ai-edit-progress-text {
+  font-size: 0.9rem;
+  color: #495057;
+  text-align: center;
+}
+
+.ai-edit-current-entry {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.ai-edit-progress-summary {
+  margin-top: 0.5rem;
+}
+
+.ai-edit-progress-info {
+  padding: 0.75rem;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.ai-edit-error-count {
+  color: #721c24;
+  font-weight: 600;
+}
+
+.ai-edit-queue-errors {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  font-size: 0.9rem;
+}
+
+.ai-edit-queue-errors ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+}
+
+.ai-edit-queue-errors li {
+  margin: 0.25rem 0;
+}
+
+.ai-edit-error-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.ai-edit-success-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background-color: #28a745;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.ai-edit-entry-error {
+  padding: 0.75rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.ai-edit-entry-error strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
 .ai-edit-modal-footer {
   display: flex;
   justify-content: flex-end;
