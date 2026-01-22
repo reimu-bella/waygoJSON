@@ -20,7 +20,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentView, onTab
         className={`tab-btn ${currentView === 'outline' ? 'active' : ''}`}
         onClick={() => onTabChange('outline')}
       >
-        Outline View
+        Lorebook Outline
       </button>
       <button
         className={`tab-btn ${currentView === 'narrative' ? 'active' : ''}`}

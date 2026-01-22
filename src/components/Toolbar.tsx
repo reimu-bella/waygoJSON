@@ -27,7 +27,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return (
     <div className="toolbar">
       <div className="toolbar-title">
-        <h1>JSON Diff Merge Editor</h1>
+        <h1>waygoJSON Lorebook Editor</h1>
       </div>
       <div className="toolbar-actions">
         <button onClick={onFormat} className="toolbar-btn">

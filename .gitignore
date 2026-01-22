@@ -47,6 +47,7 @@ coverage
 # OS files (additional)
 Thumbs.db
 *.swp
+*.kate-swp
 *.swo
 *~
 

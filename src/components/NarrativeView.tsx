@@ -12,8 +12,25 @@ interface NarrativeViewProps {
 
 export const NarrativeView: React.FC<NarrativeViewProps> = ({ draftContent }) => {
   const [narrativeContent, setNarrativeContent] = useState<string>('');
-  const [beforePrompt, setBeforePrompt] = useState<string>('');
-  const [afterPrompt, setAfterPrompt] = useState<string>('');
+  const [beforePrompt, setBeforePrompt] = useState<string>(`You are editing a lorebook in JSON format. The entry is part of a world_info/lorebook system and follows a specific structure.
+
+The entry structure includes:
+- uid: A unique identifier (number) - MUST be preserved exactly as provided
+- key: An array of strings used for matching/triggering this entry
+- comment: A short description/name for the entry
+- content: The main text content of the entry
+
+
+Original entry JSON:`);
+  const [afterPrompt, setAfterPrompt] = useState<string>(`User Instruction: 
+
+IMPORTANT: 
+- Respond with ONLY the edited JSON lorebook in full, including the "entries" wrapper
+- Do NOT include any commentary, explanation, or markdown formatting
+- Do NOT wrap the JSON in code blocks or quotes
+- The response must be valid JSON that can be parsed directly
+- Maintain all required fields from the original entry structure
+- Only modify fields as instructed by the user`);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);

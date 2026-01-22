@@ -275,14 +275,14 @@ export async function transformNarrative(
   
   try {
     const requestBody = {
-      model: 'claude-fast',
+      model: 'gemini-fast',
       messages: [
         {
           role: 'user',
           content: fullPrompt,
         },
       ],
-      max_tokens: 8192, // Increased for full JSON responses
+      max_tokens: 56000, // Increased for full JSON responses
     };
 
     const headers: HeadersInit = {
